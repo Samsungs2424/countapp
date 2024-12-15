@@ -3,7 +3,7 @@ name: Android Build
 on: 
   push:
     branches:
-      - main # yoki boshqa asosiy branch nomi
+      - main  # yoki sizning asosiy branch nomingiz
 
 jobs:
   build:
@@ -24,7 +24,7 @@ jobs:
     - name: Set up Java JDK
       uses: actions/setup-java@v2
       with:
-        distribution: 'temurin'  # `adopt-openjdk` o'rniga `temurin` ishlatish
+        distribution: 'temurin'  # `adopt-openjdk` o'rniga `temurin`
         java-version: '17'
 
     - name: Set up Android SDK
