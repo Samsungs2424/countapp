@@ -47,10 +47,10 @@ jobs:
         rsync -av --exclude='counterapp' . counterapp/www/
         ls counterapp/www/
 
-    - name: Build the project
+    - name: Build the project with debug logging
       run: |
         cd counterapp
-        cordova build android
+        cordova build android --release -- --minify --proguardFile proguard-rules.pro
 
     - name: Archive APK
       uses: actions/upload-artifact@v4
