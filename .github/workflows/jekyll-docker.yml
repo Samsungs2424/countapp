@@ -50,7 +50,7 @@ jobs:
     - name: Build the project with release build
       run: |
         cd counterapp
-        cordova build android --release
+        cordova build android --release -- --minify --optimize
 
     - name: Archive APK
       uses: actions/upload-artifact@v4
