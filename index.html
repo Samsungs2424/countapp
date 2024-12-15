@@ -1,156 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Counter App</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #121212; /* Tungi rejim odatiy holat */
-            color: #ffffff; /* Oq matn */
-            margin: 0;
-        }
-
-        body.light-mode {
-            background-color: #f5f5f5; /* Yengil rejim fon rangi */
-            color: #000000; /* Yengil rejim matn rangi */
+            transition: background-color 0.3s ease;
         }
 
         .container {
-            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
         }
 
         .navbar {
             position: absolute;
             top: 10px;
             right: 10px;
-        }
-
-        .menu-icon {
             font-size: 24px;
             cursor: pointer;
         }
 
-        .dropdown-content {
+        .menu-content {
             display: none;
             position: absolute;
-            right: 0;
+            top: 40px;
+            right: 10px;
             background-color: #333;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
+            padding: 10px;
+            border-radius: 5px;
         }
 
-        body.light-mode .dropdown-content {
-            background-color: #f9f9f9;
-        }
-
-        .dropdown-content a {
+        .menu-content a {
             color: white;
-            padding: 12px 16px;
             text-decoration: none;
+            margin: 5px;
             display: block;
         }
 
-        body.light-mode .dropdown-content a {
-            color: black;
-        }
-
-        .dropdown-content a:hover {
+        .menu-content a:hover {
             background-color: #555;
         }
 
-        body.light-mode .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        .show {
-            display: block;
-        }
-
         .history-panel {
+            display: none;
             margin-top: 20px;
             max-height: 200px;
             overflow-y: auto;
-            display: none;
+        }
+
+        button {
+            font-size: 1.5em;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #666;
         }
 
         h1 {
             font-size: 4em;
-            margin-bottom: 20px;
-        }
-
-        button {
-            font-size: 2em;
-            margin: 10px;
-            padding: 10px 20px;
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="navbar">
-            <span class="menu-icon" onclick="toggleMenu()">&#x22EE;</span>
-            <div id="menu" class="dropdown-content">
-                <a href="#" onclick="toggleDarkMode()">Tungi rejimni yoqish/o'chirish</a>
-                <a href="#" onclick="showHistory()">Tarixni ko'rish</a>
-            </div>
+        <div class="navbar" onclick="toggleMenu()">&#x22EE;</div>
+        <div id="menu" class="menu-content">
+            <a href="#" onclick="toggleDarkMode()">Tungi rejim</a>
+            <a href="#" onclick="toggleVibration()">Vibratsiya</a>
+            <a href="#" onclick="showHistory()">Tarix</a>
         </div>
         <h1 id="count">0</h1>
         <button id="increment">Increment</button>
         <button id="reset">Reset</button>
         <div id="history" class="history-panel"></div>
     </div>
+
     <script>
         let count = 0;
         let history = [];
-        let isDarkMode = true;
+        let vibrationEnabled = true;
+        let darkMode = true;
 
-        // Ilovani yuklashda saqlangan ma'lumotlarni olish
-        window.onload = function () {
-            if (localStorage.getItem('count')) {
-                count = parseInt(localStorage.getItem('count'));
-                updateCount();
-            }
-            if (localStorage.getItem('history')) {
-                history = JSON.parse(localStorage.getItem('history'));
-            }
+        // Local storage check
+        if(localStorage.getItem('count')) {
+            count = parseInt(localStorage.getItem('count'));
+            updateCount();
+        }
 
-            document.getElementById('increment').addEventListener('click', incrementCount);
-            document.getElementById('reset').addEventListener('click', resetCount);
+        if(localStorage.getItem('history')) {
+            history = JSON.parse(localStorage.getItem('history'));
+        }
 
-            // Ovoz tugmalariga hodisa biriktirish
-            document.addEventListener('deviceready', function () {
-                cordova.plugins.backgroundMode.enable();
+        document.getElementById('increment').addEventListener('click', incrementCount);
+        document.getElementById('reset').addEventListener('click', resetCount);
 
-                window.addEventListener('volumeupbutton', incrementCount);
-                window.addEventListener('volumedownbutton', incrementCount);
-            });
-        };
-
-        // Hisobni oshirish
+        // Increment count function
         function incrementCount() {
             count++;
             updateCount();
 
-            // Qisqa yoki uzun vibratsiya
-            if ('vibrate' in navigator) {
+            // Vibrations (only on Android)
+            if (vibrationEnabled && 'vibrate' in navigator) {
                 if (count % 33 === 0) {
-                    navigator.vibrate(500); // Uzun vibratsiya
+                    navigator.vibrate(500); // Long vibration
                 } else {
-                    navigator.vibrate(100); // Qisqa vibratsiya
+                    navigator.vibrate(100); // Short vibration
                 }
             }
-
-            saveData(); // Saqlash
+            saveData();
         }
 
-        // Hisobni tiklash
+        // Reset count function
         function resetCount() {
             let now = new Date();
             history.push(`${now.toLocaleString()} - ${count} marta bosildi`);
@@ -160,12 +140,12 @@
             saveData();
         }
 
-        // Ekrandagi hisobni yangilash
+        // Update count on screen
         function updateCount() {
             document.getElementById('count').textContent = count;
         }
 
-        // Tarixni yangilash
+        // Update history on screen
         function updateHistory() {
             let historyDiv = document.getElementById('history');
             historyDiv.innerHTML = '';
@@ -174,26 +154,49 @@
                 p.textContent = entry;
                 historyDiv.appendChild(p);
             });
-            saveData();
         }
 
-        // Dark Mode
+        // Toggle Dark mode
         function toggleDarkMode() {
-            isDarkMode = !isDarkMode;
-            document.body.classList.toggle('light-mode', !isDarkMode);
+            darkMode = !darkMode;
+            document.body.style.backgroundColor = darkMode ? '#121212' : '#f5f5f5';
+            document.body.style.color = darkMode ? '#ffffff' : '#000000';
         }
 
-        // Tarixni ko'rsatish
+        // Toggle vibration
+        function toggleVibration() {
+            vibrationEnabled = !vibrationEnabled;
+            alert(`Vibratsiya ${vibrationEnabled ? 'yoqildi' : 'o‘chirildi'}`);
+        }
+
+        // Show history
         function showHistory() {
             let historyPanel = document.getElementById('history');
             historyPanel.style.display = historyPanel.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Ma'lumotlarni saqlash
+        // Save data to local storage
         function saveData() {
             localStorage.setItem('count', count);
             localStorage.setItem('history', JSON.stringify(history));
         }
+
+        // Toggle menu visibility
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Volume buttons for count increment
+        document.addEventListener('deviceready', function() {
+            if (window.cordova) {
+                cordova.plugins.backgroundMode.enable();
+
+                window.addEventListener('volumeupbutton', incrementCount);
+                window.addEventListener('volumedownbutton', incrementCount);
+            }
+        });
+
     </script>
 </body>
 </html>
